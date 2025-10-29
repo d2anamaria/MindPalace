@@ -13,6 +13,22 @@ AProceduralRoomActor::AProceduralRoomActor()
 	InnerMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("InnerMesh"));
 	InnerMesh->SetupAttachment(OuterMesh);
 
+	// --- Load once here (safe)
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> CubeFinder(TEXT("/Engine/BasicShapes/Cube.Cube"));
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> SphereFinder(TEXT("/Engine/BasicShapes/Sphere.Sphere"));
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> CylinderFinder(TEXT("/Engine/BasicShapes/Cylinder.Cylinder"));
+
+	CubeMesh = CubeFinder.Succeeded() ? CubeFinder.Object : nullptr;
+	SphereMesh = SphereFinder.Succeeded() ? SphereFinder.Object : nullptr;
+	CylinderMesh = CylinderFinder.Succeeded() ? CylinderFinder.Object : nullptr;
+
+	// Default mesh
+	if (CubeMesh)
+	{
+		OuterMesh->SetStaticMesh(CubeMesh);
+		InnerMesh->SetStaticMesh(CubeMesh);
+	}
+
 	Months = 1;
 	RoomColor = FLinearColor::Red;
 	RoomShape = ERoomShape::Cube;
@@ -30,57 +46,49 @@ void AProceduralRoomActor::Tick(float DeltaTime)
 	UpdateRoom();
 }
 
-void AProceduralRoomActor::ApplyShape()
+void AProceduralRoomActor::UpdateRoom()
 {
-	// Load different assets based on shape
-	UStaticMesh *SelectedMesh = nullptr;
-
+	// --- Pick mesh based on RoomShape
+	UStaticMesh *ChosenMesh = nullptr;
 	switch (RoomShape)
 	{
 	case ERoomShape::Cube:
-		SelectedMesh = LoadObject<UStaticMesh>(nullptr, TEXT("/Engine/BasicShapes/Cube.Cube"));
+		ChosenMesh = CubeMesh;
 		break;
-	case ERoomShape::HalfSphere:
-		SelectedMesh = LoadObject<UStaticMesh>(nullptr, TEXT("/Engine/BasicShapes/Sphere.Sphere"));
+	case ERoomShape::Sphere:
+		ChosenMesh = SphereMesh;
 		break;
 	case ERoomShape::Cylinder:
-		SelectedMesh = LoadObject<UStaticMesh>(nullptr, TEXT("/Engine/BasicShapes/Cylinder.Cylinder"));
+		ChosenMesh = CylinderMesh;
+		break;
+	case ERoomShape::HalfSphere:
+		// Placeholder for your imported dome mesh
+		ChosenMesh = SphereMesh;
 		break;
 	default:
+		ChosenMesh = CubeMesh;
 		break;
 	}
 
-	if (SelectedMesh)
+	if (ChosenMesh)
 	{
-		OuterMesh->SetStaticMesh(SelectedMesh);
-		InnerMesh->SetStaticMesh(SelectedMesh);
+		OuterMesh->SetStaticMesh(ChosenMesh);
+		InnerMesh->SetStaticMesh(ChosenMesh);
 	}
-}
 
-void AProceduralRoomActor::UpdateRoom()
-{
-	ApplyShape();
-
+	// --- Scale and color
 	int32 SafeMonths = FMath::Max(1, Months);
-	float OuterScale = SafeMonths * 10.0f;
-	float InnerScale = OuterScale * 0.85f;
+	FVector NewScale(SafeMonths, SafeMonths, 1.0f);
+	OuterMesh->SetWorldScale3D(NewScale);
+	InnerMesh->SetWorldScale3D(NewScale);
 
-	OuterMesh->SetWorldScale3D(FVector(OuterScale));
+	UMaterialInstanceDynamic *OuterDyn = OuterMesh->CreateAndSetMaterialInstanceDynamic(0);
+	if (OuterDyn)
+		OuterDyn->SetVectorParameterValue("BaseColor", RoomColor);
 
-	if (RoomShape == ERoomShape::HalfSphere)
-	{
-		// Cut half by lowering the mesh halfway down (visual)
-		OuterMesh->SetRelativeScale3D(FVector(1, 1, 0.5f));
-	}
-
-	InnerMesh->SetWorldScale3D(FVector(InnerScale));
-	InnerMesh->SetRelativeLocation(FVector(0, 0, 0.5f));
-
-	// Hide inner mesh to simulate subtraction
-	InnerMesh->SetRenderInMainPass(false);
-
-	if (UMaterialInstanceDynamic *DynMat = OuterMesh->CreateAndSetMaterialInstanceDynamic(0))
-		DynMat->SetVectorParameterValue("BaseColor", RoomColor);
+	UMaterialInstanceDynamic *InnerDyn = InnerMesh->CreateAndSetMaterialInstanceDynamic(0);
+	if (InnerDyn)
+		InnerDyn->SetVectorParameterValue("BaseColor", RoomColor);
 }
 
 #if WITH_EDITOR

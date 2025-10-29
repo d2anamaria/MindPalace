@@ -8,7 +8,8 @@ UENUM(BlueprintType)
 enum class ERoomShape : uint8
 {
 	Cube UMETA(DisplayName = "Cube"),
-	HalfSphere UMETA(DisplayName = "Half Sphere"),
+	Sphere UMETA(DisplayName = "Sphere"),
+	HalfSphere UMETA(DisplayName = "HalfSphere"),
 	Cylinder UMETA(DisplayName = "Cylinder")
 };
 
@@ -26,29 +27,35 @@ protected:
 public:
 	virtual void Tick(float DeltaTime) override;
 
-	/** Controls the shape of the room */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Room Settings")
-	ERoomShape RoomShape;
-
-	/** Controls the overall scale (related to months) */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Room Settings")
 	int32 Months;
 
-	/** Color of the room walls */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Room Settings")
 	FLinearColor RoomColor;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Room Settings")
+	ERoomShape RoomShape;
 
 #if WITH_EDITOR
 	virtual void PostEditChangeProperty(FPropertyChangedEvent &PropertyChangedEvent) override;
 #endif
 
 private:
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	UStaticMeshComponent *OuterMesh;
 
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	UStaticMeshComponent *InnerMesh;
 
+	// Cached static meshes (loaded once)
+	UPROPERTY()
+	UStaticMesh *CubeMesh;
+
+	UPROPERTY()
+	UStaticMesh *SphereMesh;
+
+	UPROPERTY()
+	UStaticMesh *CylinderMesh;
+
 	void UpdateRoom();
-	void ApplyShape();
 };

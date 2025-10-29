@@ -4,15 +4,6 @@
 #include "GameFramework/Actor.h"
 #include "ProceduralRoomActor.generated.h"
 
-UENUM(BlueprintType)
-enum class ERoomShape : uint8
-{
-	Cube UMETA(DisplayName = "Cube"),
-	Sphere UMETA(DisplayName = "Sphere"),
-	HalfSphere UMETA(DisplayName = "HalfSphere"),
-	Cylinder UMETA(DisplayName = "Cylinder")
-};
-
 UCLASS()
 class MINDPALACE_API AProceduralRoomActor : public AActor
 {
@@ -21,41 +12,67 @@ class MINDPALACE_API AProceduralRoomActor : public AActor
 public:
 	AProceduralRoomActor();
 
+	// Called in editor whenever you move sliders, and also at runtime start.
+	virtual void OnConstruction(const FTransform &Transform) override;
+
 protected:
 	virtual void BeginPlay() override;
 
 public:
-	virtual void Tick(float DeltaTime) override;
+	// ================ PARAMETERS YOU TWEAK IN DETAILS PANEL ================
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Room Settings")
+	// How "big" the room is. We'll use this as number of cubes on each wall.
+	// If bIsRectangle = false -> room is Months x Months
+	// If bIsRectangle = true  -> room is Months x (Months * 2)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Proc Room")
 	int32 Months;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Room Settings")
-	FLinearColor RoomColor;
+	// Height of the wall in cubes (vertical stack)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Proc Room")
+	int32 RoomHeightCubes;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Room Settings")
-	ERoomShape RoomShape;
+	// Rectangle mode toggle
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Proc Room")
+	bool bIsRectangle;
 
-#if WITH_EDITOR
-	virtual void PostEditChangeProperty(FPropertyChangedEvent &PropertyChangedEvent) override;
-#endif
-
-private:
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	UStaticMeshComponent *OuterMesh;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	UStaticMeshComponent *InnerMesh;
-
-	// Cached static meshes (loaded once)
-	UPROPERTY()
+	// Mesh for each cube block. You assign /Engine/BasicShapes/Cube in editor.
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Proc Room")
 	UStaticMesh *CubeMesh;
 
-	UPROPERTY()
-	UStaticMesh *SphereMesh;
+	// Size of one cube in world units. 100 uu is default UE cube.
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Proc Room")
+	float CubeSize;
 
-	UPROPERTY()
-	UStaticMesh *CylinderMesh;
+	// How many random knowledge cubes to drop inside the room
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Proc Room")
+	int32 RandomAnchorsCount;
 
-	void UpdateRoom();
+	// How high (max Z) the random cubes are allowed to spawn
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Proc Room")
+	float AnchorMaxHeight;
+
+	// Color theme for cubes (we’ll apply per-instance dynamic material)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Proc Room")
+	FLinearColor RoomColor;
+
+private:
+	// We create components at runtime and keep references so we can clean them up/regenerate
+	UPROPERTY(VisibleAnywhere, Category = "Proc Room")
+	USceneComponent *Root;
+
+	// Store spawned mesh components so we can delete/regenerate cleanly
+	UPROPERTY(Transient)
+	TArray<UStaticMeshComponent *> SpawnedCubes;
+
+private:
+	void RegenerateRoom();
+	void ClearPrevious();
+
+	void BuildWalls(int32 WidthCubes, int32 LengthCubes);
+	void SpawnWallColumn(int32 GridX, int32 GridY, int32 HeightCubes);
+
+	void SpawnAnchorCubes(int32 WidthCubes, int32 LengthCubes);
+
+	UStaticMeshComponent *SpawnCubeAt(const FVector &LocalPos, const FRotator &Rot);
+	void ApplyMaterialTo(UStaticMeshComponent *Comp);
 };

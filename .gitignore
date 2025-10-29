@@ -1,0 +1,105 @@
+# =====================================
+# Unreal Engine 5.6 (Mac) - MindPalace
+# =====================================
+
+# Ignore temporary build data
+Binaries/
+DerivedDataCache/
+Intermediate/
+Saved/
+.vs/
+.vscode/
+.idea/
+
+# Ignore generated project files
+*.sln
+*.xcodeproj
+*.xcworkspace
+*.xcconfig
+*.user
+*.userprefs
+*.opensdf
+*.sdf
+*.VC.db
+*.VC.opendb
+
+# Ignore backup, logs, and autosaves
+*.log
+*.tlog
+*.tmp
+*.bak
+*.old
+*.orig
+*.swp
+*.suo
+*.dmp
+*.pdb
+*.obj
+*.pch
+
+# Ignore Unreal auto-generated cache files
+*.uhtmanifest
+*.uhtpath
+*.rsp
+*.deps
+*.bin
+*.dll
+*.dylib
+*.generated.h
+*_autogen.cpp
+*_gen.cpp
+*_gen.cpp.o
+*_gen.cpp.d
+
+# Ignore texture and shader caches
+ShaderDebugInfo/
+ShaderCache/
+DerivedDataCache/
+*.udc
+
+# Ignore Unreal Engine saved editor states
+Saved/Autosaves/
+Saved/Config/CrashReportClient/
+Saved/Collections/
+Saved/ShaderDebugInfo/
+Saved/UnrealBuildTool/
+
+# Ignore Pip/Plugin python build caches
+Intermediate/PipInstall/
+
+# Ignore local build artifacts
+*.target
+*.modules
+*.module
+*.lib
+*.o
+*.so
+
+# Ignore Unreal Build Tool metadata
+*.Build.cs.meta
+*.Target.cs.meta
+*.uprojectdirs
+
+# Ignore Mac system junk
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon?
+._*
+
+# =====================================
+# ✅ Keep these tracked
+# =====================================
+
+# Keep the actual project definition and source
+!MindPalace.uproject
+!Source/**
+
+# Keep game configuration
+!Config/**
+
+# Keep game content (maps, assets, etc.)
+!Content/**
+
+# Keep workspace file if you want it shared with VSCode
+!MindPalace.code-workspace

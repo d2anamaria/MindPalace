@@ -51,6 +51,29 @@ public:
 	float GetCubeSize() const { return CubeSize; }
 	UStaticMesh *GetCubeMesh() const { return CubeMesh; }
 
+	// WINDOWS
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Proc Room|Windows")
+	bool bEnableWindows = true;
+
+	// Window size
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Proc Room|Windows")
+	int32 WindowWidth = 2;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Proc Room|Windows")
+	int32 WindowHeight = 2;
+
+	// Distance between window centers along X axis
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Proc Room|Windows")
+	int32 WindowSpacing = 5;
+
+	// Vertical center positions (in cube indices)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Proc Room|Windows")
+	TArray<int32> WindowHeightCenters;
+
+	//  Defines where windows are placed, given room grid coordinates
+	UFUNCTION(BlueprintCallable, Category = "Proc Room|Windows")
+	bool ShouldHaveWindowAt(int32 X, int32 Y, int32 H, FVector RoomCenter) const;
+
 	// ---------------- Core generation ----------------
 	void RegenerateRoom();
 

@@ -19,6 +19,8 @@ AProceduralRoomActor::AProceduralRoomActor()
 	RandomAnchorsCount = 3;
 	AnchorMaxHeight = 150.f;
 	RoomColor = FLinearColor(0.2f, 0.4f, 1.0f);
+	bEnableWindows = true;
+	WindowHeightCenters = {1};
 
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> CubeAsset(TEXT("/Engine/BasicShapes/Cube.Cube"));
 	if (CubeAsset.Succeeded())
@@ -41,11 +43,28 @@ void AProceduralRoomActor::RegenerateRoom()
 {
 	ClearPrevious();
 
-	if (RoomShapeStrategy)
-		RoomShapeStrategy->Build(this); // <- Strategy pattern!
-
 	int32 Width = Months;
 	int32 Length = bIsRectangle ? Months * 2 : Months;
+	int32 Height = RoomHeightCubes;
+
+	// bEnableWindows = (Width >= 4 && Height >= 3);
+	if (WindowWidth <= 0)
+		WindowWidth = FMath::Clamp(Width / 5, 1, 3);
+	if (WindowHeight <= 0)
+		WindowHeight = FMath::Clamp(Height / 3, 1, 2);
+	if (WindowSpacing <= 0)
+		WindowSpacing = FMath::Clamp(Width / 2, 4, 8);
+
+	WindowHeightCenters.Empty();
+	if (bEnableWindows)
+	{
+		// Only middle-level windows
+		WindowHeightCenters.Add(Height / 2);
+	}
+
+	if (RoomShapeStrategy)
+		RoomShapeStrategy->Build(this);
+
 	SpawnAnchorCubes(Width, Length);
 }
 
@@ -70,6 +89,53 @@ UStaticMeshComponent *AProceduralRoomActor::SpawnCubeAt(const FVector &LocalPos,
 	Comp->SetRelativeRotation(Rot);
 	SpawnedCubes.Add(Comp);
 	return Comp;
+}
+
+// WINDOW
+bool AProceduralRoomActor::ShouldHaveWindowAt(int32 X, int32 Y, int32 H, FVector RoomCenter) const
+{
+	if (!bEnableWindows)
+		return false;
+
+	// --- Horizontal zone ---
+	bool bInHorizontalWindow = false;
+	int32 Width = Months;
+	int32 Length = bIsRectangle ? Months * 2 : Months;
+
+	if (Y == 0 || Y == Length - 1) // front/back walls
+	{
+		if ((X % WindowSpacing) >= (WindowSpacing / 2 - WindowWidth / 2) &&
+			(X % WindowSpacing) < (WindowSpacing / 2 + WindowWidth / 2))
+			bInHorizontalWindow = true;
+	}
+	else if (X == 0 || X == Width - 1) // left/right walls
+	{
+		if ((Y % WindowSpacing) >= (WindowSpacing / 2 - WindowWidth / 2) &&
+			(Y % WindowSpacing) < (WindowSpacing / 2 + WindowWidth / 2))
+			bInHorizontalWindow = true;
+	}
+	// --- Vertical zone ---
+	bool bInVerticalWindow = false;
+
+	if (WindowHeightCenters.Num() == 0)
+	{
+		// Default to middle height if nothing set
+		int32 Mid = FMath::Max(1, RoomHeightCubes / 2);
+		bInVerticalWindow = (H >= Mid - WindowHeight / 2 && H <= Mid + WindowHeight / 2);
+	}
+	else
+	{
+		for (int32 CenterH : WindowHeightCenters)
+		{
+			if (H >= CenterH - WindowHeight / 2 && H <= CenterH + WindowHeight / 2)
+			{
+				bInVerticalWindow = true;
+				break;
+			}
+		}
+	}
+
+	return (bInHorizontalWindow && bInVerticalWindow);
 }
 
 void AProceduralRoomActor::ApplyMaterialTo(UStaticMeshComponent *Comp)

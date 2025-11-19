@@ -1,6 +1,7 @@
 #pragma once
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "WindowShapes/URoomOpeningStrategyBase.h"
 #include "ProceduralRoomActor.generated.h"
 
 class URoomShapeBase;
@@ -55,6 +56,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Proc Room|Windows")
 	bool bEnableWindows = true;
 
+	// WINDOW STRATEGY
+	UPROPERTY(EditAnywhere, Instanced, Category = "Proc Room|Windows")
+	URoomOpeningStrategyBase *WindowStrategy;
+
 	// Window size
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Proc Room|Windows")
 	int32 WindowWidth = 2;
@@ -76,10 +81,12 @@ public:
 
 	// ---------------- Core generation ----------------
 	void RegenerateRoom();
+	void RegisterSpawned(UActorComponent* Comp);
 
 protected:
 	void ClearPrevious();
 	void SpawnAnchorCubes(int32 WidthCubes, int32 LengthCubes);
+	
 
 private:
 	UPROPERTY(VisibleAnywhere)
@@ -87,4 +94,7 @@ private:
 
 	UPROPERTY(Transient)
 	TArray<UStaticMeshComponent *> SpawnedCubes;
+
+	UPROPERTY()
+	TArray<UActorComponent *> SpawnedComponents;
 };

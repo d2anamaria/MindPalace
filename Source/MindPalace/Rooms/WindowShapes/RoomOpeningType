@@ -1,0 +1,12 @@
+#pragma once
+
+#include "RoomOpeningType.generated.h"
+
+UENUM(BlueprintType)
+enum class ERoomOpeningType : uint8
+{
+    None,
+    EmptyWindow,
+    CircularWindow,
+    Door
+};

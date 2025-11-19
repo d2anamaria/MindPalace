@@ -1,14 +1,21 @@
 #include "RoomShapeBase.h"
 #include "../ProceduralRoomActor.h"
+#include "../WindowShapes/URoomOpeningStrategyBase.h"
 
-bool URoomShapeBase::ShouldSkipForWindow(AProceduralRoomActor *Owner, int32 X, int32 Y, int32 H, int32 Width, int32 Length) const
+bool URoomShapeBase::HandleWindowIfAny(AProceduralRoomActor *Owner,
+                                       int32 X, int32 Y, int32 H,
+                                       float CubeSize,
+                                       int32 Width, int32 Length) const
 {
-    if (!Owner)
+    if (!Owner || !Owner->WindowStrategy)
         return false;
 
-    // Calculate the approximate center of the room grid
-    FVector RoomCenter(Width / 2.0f, Length / 2.0f, 0.0f);
+    if (!Owner->ShouldHaveWindowAt(X, Y, H, FVector(Width / 2.f, Length / 2.f, 0.f)))
+        return false;
 
-    // Delegate decision to the actor’s window logic
-    return Owner->ShouldHaveWindowAt(X, Y, H, RoomCenter);
+    FVector Pos(X * CubeSize, Y * CubeSize, H * CubeSize);
+    FRotator Rot = FRotator::ZeroRotator;
+
+    Owner->WindowStrategy->SpawnOpening(Owner, Pos, Rot);
+    return true;
 }

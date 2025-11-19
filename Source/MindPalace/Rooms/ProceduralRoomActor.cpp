@@ -1,5 +1,7 @@
 #include "ProceduralRoomActor.h"
 #include "RoomShapes/RoomShapeBase.h"
+#include "WindowShapes/SquareWindowStrategy.h"
+#include "WindowShapes/CircularWindowStrategy.h"
 #include "Components/StaticMeshComponent.h"
 #include "Materials/MaterialInstanceDynamic.h"
 #include "UObject/ConstructorHelpers.h"
@@ -70,13 +72,28 @@ void AProceduralRoomActor::RegenerateRoom()
 
 void AProceduralRoomActor::ClearPrevious()
 {
-	for (UStaticMeshComponent *Comp : SpawnedCubes)
-		if (Comp)
-			Comp->DestroyComponent();
+	// Destroy cube components
+	for (UStaticMeshComponent *C : SpawnedCubes)
+	{
+		if (C)
+			C->DestroyComponent();
+	}
 	SpawnedCubes.Empty();
+
+	// Destroy ALL window components (corners etc.)
+	for (UActorComponent *C : SpawnedComponents)
+	{
+		if (C)
+		{
+			if (USceneComponent *SC = Cast<USceneComponent>(C))
+				SC->DestroyComponent();
+		}
+	}
+	SpawnedComponents.Empty();
 }
 
-UStaticMeshComponent *AProceduralRoomActor::SpawnCubeAt(const FVector &LocalPos, const FRotator &Rot)
+UStaticMeshComponent *AProceduralRoomActor::SpawnCubeAt(const FVector &LocalPos,
+														const FRotator &Rot)
 {
 	if (!CubeMesh)
 		return nullptr;
@@ -87,7 +104,10 @@ UStaticMeshComponent *AProceduralRoomActor::SpawnCubeAt(const FVector &LocalPos,
 	Comp->RegisterComponent();
 	Comp->SetRelativeLocation(LocalPos);
 	Comp->SetRelativeRotation(Rot);
+
 	SpawnedCubes.Add(Comp);
+	RegisterSpawned(Comp); // <-- NEW
+
 	return Comp;
 }
 
@@ -175,4 +195,9 @@ void AProceduralRoomActor::SpawnAnchorCubes(int32 WidthCubes, int32 LengthCubes)
 			}
 		}
 	}
+}
+void AProceduralRoomActor::RegisterSpawned(UActorComponent *Comp)
+{
+	if (Comp)
+		SpawnedComponents.Add(Comp);
 }

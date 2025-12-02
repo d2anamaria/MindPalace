@@ -157,22 +157,59 @@ bool AProceduralRoomActor::ShouldHaveWindowAt(int32 X, int32 Y, int32 H, FVector
 
 	return (bInHorizontalWindow && bInVerticalWindow);
 }
-
 void AProceduralRoomActor::ApplyMaterialTo(UStaticMeshComponent *Comp)
 {
 	if (!Comp)
 		return;
 
+	UMaterialInstanceDynamic *DynMat = nullptr;
+
 	if (RoomMaterial)
 	{
-		Comp->SetMaterial(0, RoomMaterial);
-		return;
+		DynMat = UMaterialInstanceDynamic::Create(RoomMaterial, this);
+		Comp->SetMaterial(0, DynMat);
+	}
+	else
+	{
+		DynMat = Comp->CreateAndSetMaterialInstanceDynamic(0);
 	}
 
-	// Fallback if no material is assigned
-	UMaterialInstanceDynamic *DynMat = Comp->CreateAndSetMaterialInstanceDynamic(0);
-	if (DynMat)
-		DynMat->SetVectorParameterValue("BaseColor", RoomColor);
+	if (!DynMat)
+		return;
+
+	// OPTIONAL: tint
+	DynMat->SetVectorParameterValue("BaseColor", RoomColor);
+
+	// Get cube index
+	FVector Loc = Comp->GetRelativeLocation();
+	float Cube = CubeSize > 0.f ? CubeSize : 100.f;
+
+	int32 GridX = FMath::RoundToInt(Loc.X / Cube);
+	int32 GridY = FMath::RoundToInt(Loc.Y / Cube);
+	int32 GridH = FMath::RoundToInt(Loc.Z / Cube);
+
+	// Send grid coords
+	DynMat->SetScalarParameterValue("GridX", GridX);
+	DynMat->SetScalarParameterValue("GridY", GridY);
+	DynMat->SetScalarParameterValue("GridH", GridH);
+
+	// Room dimensions
+	int32 Width = Months;
+	int32 Length = bIsRectangle ? Months * 2 : Months;
+	int32 Height = RoomHeightCubes;
+
+	// Select atlas width depending on wall
+	int32 TotalWidth = (GridY == 0 || GridY == Length - 1) ? Width : Length;
+
+	DynMat->SetScalarParameterValue("TotalWidth", TotalWidth);
+	DynMat->SetScalarParameterValue("TotalHeight", Height);
+
+	// ============================================
+	// 🔥 Compute the atlas UV cell for this cube
+	// ============================================
+
+	float USize = 1.0f / TotalWidth;
+	float VSize = 1.0f / Height;
 }
 
 // random anchors (same as before)
@@ -207,4 +244,55 @@ void AProceduralRoomActor::RegisterSpawned(UActorComponent *Comp)
 {
 	if (Comp)
 		SpawnedComponents.Add(Comp);
+}
+
+void AProceduralRoomActor::ApplyUVParams(
+	UStaticMeshComponent *Comp,
+	int32 X, int32 H,
+	int32 Width, int32 Height)
+{
+	if (!Comp)
+		return;
+
+	int32 MaterialWidth = 5;
+	int32 MaterialHeight = 5;
+
+	float USize = 1.f / MaterialWidth;
+	float VSize = 1.f / MaterialHeight;
+
+	// --- Determine which wall this cube belongs to ---
+	FVector Loc = Comp->GetRelativeLocation();
+	int32 GridX = FMath::RoundToInt(Loc.X / CubeSize);
+	int32 GridY = FMath::RoundToInt(Loc.Y / CubeSize);
+
+	// We know the actual room sizes
+	int32 RoomWidth = Months;
+	int32 RoomLength = bIsRectangle ? Months * 2 : Months;
+
+	bool bIsFront = (GridY == 0);
+	bool bIsBack = (GridY == RoomLength - 1);
+	bool bIsLeft = (GridX == 0);
+	bool bIsRight = (GridX == RoomWidth - 1);
+
+	// --- UV flipping rules ---
+	bool bFlipHorizontal = false;
+
+	if (bIsLeft)
+		bFlipHorizontal = true; // back wall needs flipping
+	if (bIsRight)
+		bFlipHorizontal = true; // front wall needs flipping
+
+	float UStart;
+	if (bFlipHorizontal)
+		UStart = float((MaterialWidth - 1) - (X % MaterialWidth)) * USize;
+	else
+		UStart = float(X % MaterialWidth) * USize;
+
+	// Vertical flip only (texture layout)
+	float VStart = float((MaterialHeight - 1) - (H % MaterialHeight)) * VSize;
+
+	Comp->SetScalarParameterValueOnMaterials(TEXT("UStart"), UStart);
+	Comp->SetScalarParameterValueOnMaterials(TEXT("VStart"), VStart);
+	Comp->SetScalarParameterValueOnMaterials(TEXT("USize"), USize);
+	Comp->SetScalarParameterValueOnMaterials(TEXT("VSize"), VSize);
 }

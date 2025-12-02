@@ -30,7 +30,11 @@ void UCubeRoomShape::Build(AProceduralRoomActor *Owner)
             FVector Bottom(x * CubeSize, 0.f, h * CubeSize);
             UStaticMeshComponent *C1 = Owner->SpawnCubeAt(Bottom, FRotator::ZeroRotator);
             if (C1)
+            {
                 Owner->ApplyMaterialTo(C1);
+                int32 UIndex = x; // FRONT: no flip
+                Owner->ApplyUVParams(C1, UIndex, h, Width, Height);
+            }
 
             // Opposite wall (top edge)
             if (Length > 1)
@@ -40,7 +44,11 @@ void UCubeRoomShape::Build(AProceduralRoomActor *Owner)
                 FVector Top(x * CubeSize, (Length - 1) * CubeSize, h * CubeSize);
                 UStaticMeshComponent *C2 = Owner->SpawnCubeAt(Top, FRotator::ZeroRotator);
                 if (C2)
+                {
                     Owner->ApplyMaterialTo(C2);
+                    int32 UIndex = (Width - 1) - x; // BACK: flip
+                    Owner->ApplyUVParams(C2, UIndex, h, Width, Height);
+                }
             }
         }
     }
@@ -60,7 +68,11 @@ void UCubeRoomShape::Build(AProceduralRoomActor *Owner)
             FVector Left(0.f, y * CubeSize, h * CubeSize);
             UStaticMeshComponent *L = Owner->SpawnCubeAt(Left, FRotator::ZeroRotator);
             if (L)
+            {
                 Owner->ApplyMaterialTo(L);
+                int32 UIndex = y;                                   // LEFT: horizontal is y
+                Owner->ApplyUVParams(L, UIndex, h, Length, Height); // NOTE: use Length
+            }
 
             // Opposite wall (right edge)
             if (Width > 1)
@@ -71,7 +83,11 @@ void UCubeRoomShape::Build(AProceduralRoomActor *Owner)
                 FVector Right((Width - 1) * CubeSize, y * CubeSize, h * CubeSize);
                 UStaticMeshComponent *R = Owner->SpawnCubeAt(Right, FRotator::ZeroRotator);
                 if (R)
+                {
                     Owner->ApplyMaterialTo(R);
+                    int32 UIndex = (Length - 1) - y; // RIGHT: flip
+                    Owner->ApplyUVParams(R, UIndex, h, Length, Height);
+                }
             }
         }
     }

@@ -2,6 +2,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "WindowShapes/URoomOpeningStrategyBase.h"
+#include "Furniture/UAnchorSpawner.h"
 #include "ProceduralRoomActor.generated.h"
 
 class URoomShapeBase;
@@ -38,6 +39,9 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Proc Room")
 	float AnchorMaxHeight;
+
+	UPROPERTY()
+	UAnchorSpawner *AnchorSpawner;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Proc Room|Materials")
 	UMaterialInterface *RoomMaterial;
@@ -90,7 +94,6 @@ public:
 protected:
 	void ClearPrevious();
 	void SpawnAnchorCubes(int32 WidthCubes, int32 LengthCubes);
-	
 
 private:
 	UPROPERTY(VisibleAnywhere)

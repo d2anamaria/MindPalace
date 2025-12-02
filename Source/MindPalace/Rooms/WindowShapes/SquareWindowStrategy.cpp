@@ -10,8 +10,9 @@ bool USquareWindowStrategy::IsWindowAt_Implementation(
 
 void USquareWindowStrategy::SpawnOpening_Implementation(
     AProceduralRoomActor *Owner,
-    const FVector &Pos,
+    int32 X, int32 Y, int32 H,
+    const FVector &LocalPos,
     const FRotator &Rot) const
 {
-    // Square windows = hole-only
+    // still hole-only, do nothing
 }

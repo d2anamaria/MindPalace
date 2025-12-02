@@ -19,6 +19,7 @@ public:
     // Spawn the opening mesh (or nothing for hole-only windows)
     UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
     void SpawnOpening(AProceduralRoomActor *Owner,
+                      int32 X, int32 Y, int32 H,
                       const FVector &LocalPos,
                       const FRotator &Rot) const;
 };

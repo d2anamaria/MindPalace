@@ -15,6 +15,7 @@ public:
 
     virtual void SpawnOpening_Implementation(
         AProceduralRoomActor *Owner,
+        int32 X, int32 Y, int32 H,
         const FVector &LocalPos,
         const FRotator &Rot) const override;
 };

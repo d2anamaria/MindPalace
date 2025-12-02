@@ -163,6 +163,13 @@ void AProceduralRoomActor::ApplyMaterialTo(UStaticMeshComponent *Comp)
 	if (!Comp)
 		return;
 
+	if (RoomMaterial)
+	{
+		Comp->SetMaterial(0, RoomMaterial);
+		return;
+	}
+
+	// Fallback if no material is assigned
 	UMaterialInstanceDynamic *DynMat = Comp->CreateAndSetMaterialInstanceDynamic(0);
 	if (DynMat)
 		DynMat->SetVectorParameterValue("BaseColor", RoomColor);

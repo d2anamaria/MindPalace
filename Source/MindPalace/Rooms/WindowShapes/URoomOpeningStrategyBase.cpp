@@ -8,8 +8,10 @@ bool URoomOpeningStrategyBase::IsWindowAt_Implementation(int32 X, int32 Y, int32
 }
 
 // Default: do nothing
-void URoomOpeningStrategyBase::SpawnOpening_Implementation(AProceduralRoomActor *Owner,
-                                                           const FVector &LocalPos,
-                                                           const FRotator &Rot) const
+void URoomOpeningStrategyBase::SpawnOpening_Implementation(
+    AProceduralRoomActor *Owner,
+    int32 X, int32 Y, int32 H,
+    const FVector &LocalPos,
+    const FRotator &Rot) const
 {
 }

@@ -16,6 +16,7 @@ bool URoomShapeBase::HandleWindowIfAny(AProceduralRoomActor *Owner,
     FVector Pos(X * CubeSize, Y * CubeSize, H * CubeSize);
     FRotator Rot = FRotator::ZeroRotator;
 
-    Owner->WindowStrategy->SpawnOpening(Owner, Pos, Rot);
+    Owner->WindowStrategy->SpawnOpening(Owner, X, Y, H, Pos, Rot);
+
     return true;
 }

@@ -39,6 +39,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Proc Room")
 	float AnchorMaxHeight;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Proc Room|Materials")
+	UMaterialInterface *RoomMaterial;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Proc Room")
 	FLinearColor RoomColor;
 
@@ -81,12 +84,11 @@ public:
 
 	// ---------------- Core generation ----------------
 	void RegenerateRoom();
-	void RegisterSpawned(UActorComponent* Comp);
+	void RegisterSpawned(UActorComponent *Comp);
 
 protected:
 	void ClearPrevious();
 	void SpawnAnchorCubes(int32 WidthCubes, int32 LengthCubes);
-	
 
 private:
 	UPROPERTY(VisibleAnywhere)

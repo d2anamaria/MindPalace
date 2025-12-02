@@ -27,6 +27,7 @@ bool UCircularWindowStrategy::IsWindowAt_Implementation(
 
 void UCircularWindowStrategy::SpawnOpening_Implementation(
     AProceduralRoomActor *Owner,
+    int32 X, int32 Y, int32 H,
     const FVector &LocalPos,
     const FRotator &Rot) const
 {
@@ -39,9 +40,6 @@ void UCircularWindowStrategy::SpawnOpening_Implementation(
 
     float Cube = Owner->GetCubeSize();
 
-    int32 X = FMath::RoundToInt(LocalPos.X / Cube);
-    int32 Y = FMath::RoundToInt(LocalPos.Y / Cube);
-    int32 H = FMath::RoundToInt(LocalPos.Z / Cube);
 
     int32 Width = Owner->Months;
     int32 Length = Owner->bIsRectangle ? Owner->Months * 2 : Owner->Months;
@@ -64,7 +62,7 @@ void UCircularWindowStrategy::SpawnOpening_Implementation(
 
     if (IsFront || IsBack)
     {
-        // FRONT/BACK walls → horizontal neighbors along X-axis
+        // FRONT/BACK walls 
         UL = IsSolid(X - 1, Y, H) && IsSolid(X, Y, H + 1);
         UR = IsSolid(X + 1, Y, H) && IsSolid(X, Y, H + 1);
         LL = IsSolid(X - 1, Y, H) && IsSolid(X, Y, H - 1);
@@ -72,16 +70,14 @@ void UCircularWindowStrategy::SpawnOpening_Implementation(
     }
     else if (IsLeft || IsRight)
     {
-        // LEFT/RIGHT walls → horizontal neighbors along Y-axis
+        // LEFT/RIGHT walls
         UL = IsSolid(X, Y - 1, H) && IsSolid(X, Y, H + 1);
         UR = IsSolid(X, Y + 1, H) && IsSolid(X, Y, H + 1);
         LL = IsSolid(X, Y - 1, H) && IsSolid(X, Y, H - 1);
         LR = IsSolid(X, Y + 1, H) && IsSolid(X, Y, H - 1);
     }
-    // else
-    // {
-    //     return; // Not a wall
-    // }
+    else
+        return; // Not a wall
 
     if (!UL && !UR && !LL && !LR)
         return;

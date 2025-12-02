@@ -85,10 +85,12 @@ public:
 	// ---------------- Core generation ----------------
 	void RegenerateRoom();
 	void RegisterSpawned(UActorComponent *Comp);
+	void ApplyUVParams(UStaticMeshComponent *Comp, int32 X, int32 Y, int32 Width, int32 Height);
 
 protected:
 	void ClearPrevious();
 	void SpawnAnchorCubes(int32 WidthCubes, int32 LengthCubes);
+	
 
 private:
 	UPROPERTY(VisibleAnywhere)

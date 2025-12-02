@@ -163,16 +163,34 @@ void AProceduralRoomActor::ApplyMaterialTo(UStaticMeshComponent *Comp)
 	if (!Comp)
 		return;
 
+	UMaterialInstanceDynamic *DynMat = nullptr;
+
+	// If a RoomMaterial is assigned in the editor → use it as the base
 	if (RoomMaterial)
 	{
-		Comp->SetMaterial(0, RoomMaterial);
-		return;
+		DynMat = UMaterialInstanceDynamic::Create(RoomMaterial, this);
+		Comp->SetMaterial(0, DynMat);
+	}
+	else
+	{
+		// Fallback: create dynamic material from mesh slot
+		DynMat = Comp->CreateAndSetMaterialInstanceDynamic(0);
 	}
 
-	// Fallback if no material is assigned
-	UMaterialInstanceDynamic *DynMat = Comp->CreateAndSetMaterialInstanceDynamic(0);
-	if (DynMat)
-		DynMat->SetVectorParameterValue("BaseColor", RoomColor);
+	if (!DynMat)
+		return;
+
+	// SET COLOR IF YOU WANT (optional)
+	DynMat->SetVectorParameterValue("BaseColor", RoomColor);
+
+	// SET UV PARAMETERS FOR WALL MAPPING
+	FVector Loc = Comp->GetRelativeLocation();
+	float Cube = CubeSize > 0.f ? CubeSize : 100.f;
+
+	int32 GridH = FMath::RoundToInt(Loc.Z / Cube);
+
+	DynMat->SetScalarParameterValue("GridH", GridH);
+	DynMat->SetScalarParameterValue("TotalHeight", RoomHeightCubes);
 }
 
 // random anchors (same as before)

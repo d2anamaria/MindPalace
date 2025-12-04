@@ -74,10 +74,20 @@ void AProceduralRoomActor::RegenerateRoom()
 
 	AnchorSpawner->Init(this);
 	AnchorSpawner->BuildAnchors(Width, Length);
+
+	SpawnCenterLightModule(Width, Length, Height);
 }
 
 void AProceduralRoomActor::ClearPrevious()
 {
+	// Destroy center light (editor-safe)
+	if (CenterLight)
+	{
+		CenterLight->DestroyComponent();
+		CenterLight->MarkAsGarbage();
+		CenterLight = nullptr;
+	}
+
 	// Destroy cube components
 	for (UStaticMeshComponent *C : SpawnedCubes)
 	{
@@ -273,4 +283,33 @@ void AProceduralRoomActor::ApplyUVParams(
 	Comp->SetScalarParameterValueOnMaterials(TEXT("VStart"), VStart);
 	Comp->SetScalarParameterValueOnMaterials(TEXT("USize"), USize);
 	Comp->SetScalarParameterValueOnMaterials(TEXT("VSize"), VSize);
+}
+
+void AProceduralRoomActor::SpawnCenterLightModule(int32 Width, int32 Length, int32 Height)
+{
+	if (CenterLight)
+	{
+		CenterLight->DestroyComponent();
+		CenterLight = nullptr;
+	}
+
+	float XMid = (Width * CubeSize) * 0.5f;
+	float YMid = (Length * CubeSize) * 0.5f;
+	float ZMid = (Height * CubeSize) * 0.5f;
+
+	// Compute radius (always bigger than room)
+	float RoomDiagonal = FVector(Width * CubeSize, Length * CubeSize, Height * CubeSize).Size();
+	float AutoRadius = RoomDiagonal * 1.3f;
+
+	CenterLight = NewObject<UThemePointLightComponent>(
+		this,
+		UThemePointLightComponent::StaticClass(),
+		NAME_None,
+		RF_Transient);
+
+	CenterLight->SetupAttachment(RootComponent);
+	CenterLight->RegisterComponent();
+	CenterLight->InitLight(FVector(XMid, YMid, ZMid), AutoRadius);
+	CenterLight->ApplyTheme(ActiveTheme);
+	RegisterSpawned(CenterLight);
 }

@@ -40,14 +40,14 @@ void UAnchorSpawner::LoadAssets()
         return;
     }
 
-    // 1) Opaque vs Transparent
-    {
-        FAnchorAssetEntry Entry;
-        Entry.Mesh = BaseMeshTranslucent;
-        Entry.LeftConcept = EConceptType::Opaque;
-        Entry.RightConcept = EConceptType::Transparent;
-        AnchorAssetPool.Add(Entry);
-    }
+    // // 1) Opaque vs Transparent
+    // {
+    //     FAnchorAssetEntry Entry;
+    //     Entry.Mesh = BaseMeshTranslucent;
+    //     Entry.LeftConcept = EConceptType::Opaque;
+    //     Entry.RightConcept = EConceptType::Transparent;
+    //     AnchorAssetPool.Add(Entry);
+    // }
 
     // 2) Metallic vs Diffuse
     {
@@ -76,32 +76,32 @@ void UAnchorSpawner::LoadAssets()
     //     AnchorAssetPool.Add(Entry);
     // }
 
-    // 5) Emissive vs Dark
-    {
-        FAnchorAssetEntry Entry;
-        Entry.Mesh = BaseMesh;
-        Entry.LeftConcept = EConceptType::Emissive;
-        Entry.RightConcept = EConceptType::Dark;
-        AnchorAssetPool.Add(Entry);
-    }
+    // // 5) Emissive vs Dark
+    // {
+    //     FAnchorAssetEntry Entry;
+    //     Entry.Mesh = BaseMesh;
+    //     Entry.LeftConcept = EConceptType::Emissive;
+    //     Entry.RightConcept = EConceptType::Dark;
+    //     AnchorAssetPool.Add(Entry);
+    // }
 
-    // 6) NormalBumpy vs NormalFlat
-    {
-        FAnchorAssetEntry Entry;
-        Entry.Mesh = BaseMesh;
-        Entry.LeftConcept = EConceptType::NormalBumpy;
-        Entry.RightConcept = EConceptType::NormalFlat;
-        AnchorAssetPool.Add(Entry);
-    }
+    // // 6) NormalBumpy vs NormalFlat
+    // {
+    //     FAnchorAssetEntry Entry;
+    //     Entry.Mesh = BaseMesh;
+    //     Entry.LeftConcept = EConceptType::NormalBumpy;
+    //     Entry.RightConcept = EConceptType::NormalFlat;
+    //     AnchorAssetPool.Add(Entry);
+    // }
 
-    // 7) Glass vs Plastic
-    {
-        FAnchorAssetEntry Entry;
-        Entry.Mesh = BaseMeshTranslucent;
-        Entry.LeftConcept = EConceptType::Glass;
-        Entry.RightConcept = EConceptType::Plastic;
-        AnchorAssetPool.Add(Entry);
-    }
+    // // 7) Glass vs Plastic
+    // {
+    //     FAnchorAssetEntry Entry;
+    //     Entry.Mesh = BaseMeshTranslucent;
+    //     Entry.LeftConcept = EConceptType::Glass;
+    //     Entry.RightConcept = EConceptType::Plastic;
+    //     AnchorAssetPool.Add(Entry);
+    // }
 }
 
 FAnchorAssetEntry UAnchorSpawner::GetRandomAsset()

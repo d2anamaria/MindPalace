@@ -24,4 +24,14 @@ struct FThemeData
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
     float EmissionBoost = 0.0f;
+
+    // ---------------- NEW LIGHT PROPERTIES ----------------
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    FLinearColor LightColor = FLinearColor::White;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    float LightIntensity = 10000.0f;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    float LightRadius = 2000.f;
 };

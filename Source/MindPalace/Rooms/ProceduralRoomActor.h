@@ -4,6 +4,8 @@
 #include "WindowShapes/URoomOpeningStrategyBase.h"
 #include "Furniture/UAnchorSpawner.h"
 #include "Themes/EThemeType.h"
+#include "Lights/UThemePointLightComponent.h"
+
 #include "ProceduralRoomActor.generated.h"
 
 class URoomShapeBase;
@@ -93,6 +95,12 @@ public:
 	//  Defines where windows are placed, given room grid coordinates
 	UFUNCTION(BlueprintCallable, Category = "Proc Room|Windows")
 	bool ShouldHaveWindowAt(int32 X, int32 Y, int32 H, FVector RoomCenter) const;
+
+	// ---------------- Lighting ----------------
+	UPROPERTY()
+	UThemePointLightComponent *CenterLight;
+
+	void SpawnCenterLightModule(int32 Width, int32 Length, int32 Height);
 
 	// ---------------- Core generation ----------------
 	void RegenerateRoom();

@@ -3,6 +3,7 @@
 #include "GameFramework/Actor.h"
 #include "WindowShapes/URoomOpeningStrategyBase.h"
 #include "Furniture/UAnchorSpawner.h"
+#include "Themes/EThemeType.h"
 #include "ProceduralRoomActor.generated.h"
 
 class URoomShapeBase;
@@ -52,6 +53,13 @@ public:
 	// The shape strategy you pick in the editor (Cube / Dome / Hemisphere)
 	UPROPERTY(EditAnywhere, Instanced, Category = "Proc Room|Shape")
 	URoomShapeBase *RoomShapeStrategy;
+
+	// ---------------- Theme----------------
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Room Theme")
+	EThemeType ThemeStyle = EThemeType::Dark;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Room Theme")
+	FThemeData ActiveTheme;
 
 	// ---------------- Helpers reused by shapes ----------------
 	UStaticMeshComponent *SpawnCubeAt(const FVector &LocalPos, const FRotator &Rot);

@@ -12,6 +12,12 @@
 // REQUIRED for OnClicked signature
 #include "Components/PrimitiveComponent.h"
 
+// Theme + Concept includes
+#include "../Themes/EThemeType.h"
+#include "ProceduralMaterials/ConceptTypes.h"
+#include "ProceduralMaterials/ConceptFactory.h"
+#include "ProceduralMaterials/MaterialParamApplier.h"
+
 void UAnchorSpawner::Init(AProceduralRoomActor *InOwner)
 {
     Owner = InOwner;
@@ -20,27 +26,94 @@ void UAnchorSpawner::Init(AProceduralRoomActor *InOwner)
 
 void UAnchorSpawner::LoadAssets()
 {
-    UStaticMesh *Mesh = LoadObject<UStaticMesh>(
-        nullptr,
-        TEXT("/Game/Assets/Anchors/SphereDisplay.SphereDisplay"));
+    AnchorAssetPool.Empty();
 
-    if (Mesh)
-        AnchorAssetPool.Add(Mesh);
+    // Load the ONE anchor mesh you actually have
+    UStaticMesh *BaseMesh = LoadObject<UStaticMesh>(nullptr,
+                                                    TEXT("/Game/Assets/Anchors/SphereDisplay.SphereDisplay"));
+    UStaticMesh *BaseMeshTranslucent = LoadObject<UStaticMesh>(nullptr,
+                                                               TEXT("/Game/Assets/Anchors/SphereDisplayTranslucent.SphereDisplayTranslucent"));
 
-    Remember_PixieDust = LoadObject<UNiagaraSystem>(
-        nullptr,
-        TEXT("/Game/FX/Remember.Remember"));
+    if (!BaseMesh || !BaseMeshTranslucent)
+    {
+        UE_LOG(LogTemp, Error, TEXT("FAILED to load SphereDisplay mesh! No anchors will spawn."));
+        return;
+    }
+
+    // 1) Opaque vs Transparent
+    {
+        FAnchorAssetEntry Entry;
+        Entry.Mesh = BaseMeshTranslucent;
+        Entry.LeftConcept = EConceptType::Opaque;
+        Entry.RightConcept = EConceptType::Transparent;
+        AnchorAssetPool.Add(Entry);
+    }
+
+    // 2) Metallic vs Diffuse
+    {
+        FAnchorAssetEntry Entry;
+        Entry.Mesh = BaseMesh;
+        Entry.LeftConcept = EConceptType::Metallic;
+        Entry.RightConcept = EConceptType::Diffuse;
+        AnchorAssetPool.Add(Entry);
+    }
+
+    // 3) Reflective vs Matte
+    {
+        FAnchorAssetEntry Entry;
+        Entry.Mesh = BaseMesh;
+        Entry.LeftConcept = EConceptType::Reflective;
+        Entry.RightConcept = EConceptType::Matte;
+        AnchorAssetPool.Add(Entry);
+    }
+
+    // // 4) Phong vs Blinn
+    // {
+    //     FAnchorAssetEntry Entry;
+    //     Entry.Mesh = BaseMesh;
+    //     Entry.LeftConcept = EConceptType::Phong;
+    //     Entry.RightConcept = EConceptType::Blinn;
+    //     AnchorAssetPool.Add(Entry);
+    // }
+
+    // 5) Emissive vs Dark
+    {
+        FAnchorAssetEntry Entry;
+        Entry.Mesh = BaseMesh;
+        Entry.LeftConcept = EConceptType::Emissive;
+        Entry.RightConcept = EConceptType::Dark;
+        AnchorAssetPool.Add(Entry);
+    }
+
+    // 6) NormalBumpy vs NormalFlat
+    {
+        FAnchorAssetEntry Entry;
+        Entry.Mesh = BaseMesh;
+        Entry.LeftConcept = EConceptType::NormalBumpy;
+        Entry.RightConcept = EConceptType::NormalFlat;
+        AnchorAssetPool.Add(Entry);
+    }
+
+    // 7) Glass vs Plastic
+    {
+        FAnchorAssetEntry Entry;
+        Entry.Mesh = BaseMeshTranslucent;
+        Entry.LeftConcept = EConceptType::Glass;
+        Entry.RightConcept = EConceptType::Plastic;
+        AnchorAssetPool.Add(Entry);
+    }
 }
 
-UStaticMesh *UAnchorSpawner::GetRandomAsset()
+FAnchorAssetEntry UAnchorSpawner::GetRandomAsset()
 {
+    FAnchorAssetEntry Empty;
+
     if (AnchorAssetPool.Num() == 0)
-        return nullptr;
+        return Empty;
 
     int32 RandIdx = FMath::RandRange(0, AnchorAssetPool.Num() - 1);
-    UStaticMesh *Chosen = AnchorAssetPool[RandIdx];
 
-    // Remove from pool so it can't be chosen again
+    FAnchorAssetEntry Chosen = AnchorAssetPool[RandIdx];
     AnchorAssetPool.RemoveAt(RandIdx);
 
     return Chosen;
@@ -57,7 +130,7 @@ void UAnchorSpawner::BuildAnchors(int32 WidthCubes, int32 LengthCubes)
 
     for (int32 i = 0; i < Owner->RandomAnchorsCount; i++)
     {
-        float Margin = Cube * 0.5f;
+        float Margin = Cube * 3.0f;
         float RandX = FMath::RandRange(Margin, MaxX - Margin);
         float RandY = FMath::RandRange(Margin, MaxY - Margin);
         float RandZ = FMath::RandRange(0.f, Owner->AnchorMaxHeight);
@@ -65,7 +138,14 @@ void UAnchorSpawner::BuildAnchors(int32 WidthCubes, int32 LengthCubes)
         FVector Pos(RandX, RandY, RandZ);
         FRotator Rot(0.f, FMath::RandRange(0.f, 360.f), 0.f);
 
-        UStaticMesh *MeshToUse = GetRandomAsset();
+        FAnchorAssetEntry Asset = GetRandomAsset();
+
+        UStaticMesh *MeshToUse = Asset.Mesh;
+
+        // These two determine the concepts for slots 1 and 3
+        EConceptType ConceptLeft = Asset.LeftConcept;
+        EConceptType ConceptRight = Asset.RightConcept;
+
         if (!MeshToUse)
             MeshToUse = Owner->GetCubeMesh();
 
@@ -102,6 +182,8 @@ void UAnchorSpawner::BuildAnchors(int32 WidthCubes, int32 LengthCubes)
         // Bind overlap
         Trigger->OnComponentBeginOverlap.AddDynamic(this, &UAnchorSpawner::OnAnchorOverlap);
 
+        Owner->RegisterSpawned(Trigger);
+
         // ==============================================
         // Add Remember_PixieDust FX
         // ==============================================
@@ -137,6 +219,31 @@ void UAnchorSpawner::BuildAnchors(int32 WidthCubes, int32 LengthCubes)
             Owner->RegisterSpawned(FXComp);
         }
         Owner->RegisterSpawned(Comp);
+
+        // ===========================================================
+        // APPLY THEME + CONCEPTS
+        // ===========================================================
+        for (int32 Slot = 0; Slot < Comp->GetNumMaterials(); Slot++)
+        {
+            UMaterialInstanceDynamic *DynMat = Comp->CreateAndSetMaterialInstanceDynamic(Slot);
+            if (!DynMat)
+                continue;
+
+            // 1) Apply Theme preset from room
+            MaterialParamApplier::ApplyThemePreset(DynMat, Owner->ActiveTheme);
+
+            // 2) Apply Concept only to sphere slots (1 and 3)
+            if (Slot == 1)
+            {
+                FConceptData DataLeft = ConceptFactory::Create(ConceptLeft);
+                MaterialParamApplier::ApplyConcept(DynMat, DataLeft);
+            }
+            else if (Slot == 3)
+            {
+                FConceptData DataRight = ConceptFactory::Create(ConceptRight);
+                MaterialParamApplier::ApplyConcept(DynMat, DataRight);
+            }
+        }
     }
 }
 
@@ -182,27 +289,6 @@ void UAnchorSpawner::OnAnchorOverlap(
 
         FTimerHandle Handle;
         Owner->GetWorldTimerManager().SetTimer(Handle, Delegate, 5.f, false);
-    }
-}
-
-void UAnchorSpawner::DisableAnchorAndFX(UPrimitiveComponent *AnchorComp)
-{
-    if (!AnchorComp)
-        return;
-
-    AnchorComp->SetVisibility(false, true);
-    AnchorComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-
-    TArray<USceneComponent *> Children;
-    AnchorComp->GetChildrenComponents(true, Children);
-
-    for (USceneComponent *Child : Children)
-    {
-        if (UNiagaraComponent *FX = Cast<UNiagaraComponent>(Child))
-        {
-            FX->DeactivateImmediate();
-            FX->DestroyComponent();
-        }
     }
 }
 

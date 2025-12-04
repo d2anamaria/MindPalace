@@ -4,6 +4,8 @@
 #include "WindowShapes/CircularWindowStrategy.h"
 #include "Components/StaticMeshComponent.h"
 #include "Materials/MaterialInstanceDynamic.h"
+#include "Themes/ThemePresets.h"
+
 #include "UObject/ConstructorHelpers.h"
 #include "Engine/World.h"
 
@@ -34,6 +36,7 @@ AProceduralRoomActor::AProceduralRoomActor()
 void AProceduralRoomActor::BeginPlay()
 {
 	Super::BeginPlay();
+	ActiveTheme = ThemePresets::GetPreset(ThemeStyle);
 	RegenerateRoom();
 }
 
@@ -214,7 +217,6 @@ void AProceduralRoomActor::ApplyMaterialTo(UStaticMeshComponent *Comp)
 	float USize = 1.0f / TotalWidth;
 	float VSize = 1.0f / Height;
 }
-
 
 void AProceduralRoomActor::RegisterSpawned(UActorComponent *Comp)
 {

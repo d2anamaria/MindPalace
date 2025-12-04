@@ -4,6 +4,8 @@
 #include "WindowShapes/CircularWindowStrategy.h"
 #include "Components/StaticMeshComponent.h"
 #include "Materials/MaterialInstanceDynamic.h"
+#include "Themes/ThemePresets.h"
+
 #include "UObject/ConstructorHelpers.h"
 #include "Engine/World.h"
 
@@ -25,6 +27,8 @@ AProceduralRoomActor::AProceduralRoomActor()
 	WindowHeightCenters = {1};
 
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> CubeAsset(TEXT("/Engine/BasicShapes/Cube.Cube"));
+	AnchorSpawner = CreateDefaultSubobject<UAnchorSpawner>(TEXT("AnchorSpawner"));
+
 	if (CubeAsset.Succeeded())
 		CubeMesh = CubeAsset.Object;
 }
@@ -32,6 +36,7 @@ AProceduralRoomActor::AProceduralRoomActor()
 void AProceduralRoomActor::BeginPlay()
 {
 	Super::BeginPlay();
+	ActiveTheme = ThemePresets::GetPreset(ThemeStyle);
 	RegenerateRoom();
 }
 
@@ -67,7 +72,8 @@ void AProceduralRoomActor::RegenerateRoom()
 	if (RoomShapeStrategy)
 		RoomShapeStrategy->Build(this);
 
-	SpawnAnchorCubes(Width, Length);
+	AnchorSpawner->Init(this);
+	AnchorSpawner->BuildAnchors(Width, Length);
 }
 
 void AProceduralRoomActor::ClearPrevious()
@@ -212,34 +218,6 @@ void AProceduralRoomActor::ApplyMaterialTo(UStaticMeshComponent *Comp)
 	float VSize = 1.0f / Height;
 }
 
-// random anchors (same as before)
-void AProceduralRoomActor::SpawnAnchorCubes(int32 WidthCubes, int32 LengthCubes)
-{
-	float MaxX = (WidthCubes - 1) * CubeSize;
-	float MaxY = (LengthCubes - 1) * CubeSize;
-
-	for (int32 i = 0; i < RandomAnchorsCount; i++)
-	{
-		float Margin = CubeSize * 0.5f;
-		float RandX = FMath::RandRange(Margin, MaxX - Margin);
-		float RandY = FMath::RandRange(Margin, MaxY - Margin);
-		float RandZ = FMath::RandRange(0.f, AnchorMaxHeight);
-
-		FVector LocalPos(RandX, RandY, RandZ);
-		FRotator Rot(0.f, FMath::RandRange(0.f, 360.f), 0.f);
-
-		UStaticMeshComponent *Anchor = SpawnCubeAt(LocalPos, Rot);
-		if (Anchor)
-		{
-			UMaterialInstanceDynamic *DynMat = Anchor->CreateAndSetMaterialInstanceDynamic(0);
-			if (DynMat)
-			{
-				FLinearColor Accent = RoomColor * 1.5f;
-				DynMat->SetVectorParameterValue("BaseColor", Accent);
-			}
-		}
-	}
-}
 void AProceduralRoomActor::RegisterSpawned(UActorComponent *Comp)
 {
 	if (Comp)

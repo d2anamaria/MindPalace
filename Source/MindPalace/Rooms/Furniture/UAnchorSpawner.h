@@ -71,9 +71,9 @@ private:
     UNiagaraSystem *Remember_PixieDust = nullptr;
 
     UFUNCTION()
-    void RestoreDust(UPrimitiveComponent *AnchorComp); // called after 5s
+    void RestoreDust(UPrimitiveComponent *AnchorComp);
 
-    void DisableDust(UPrimitiveComponent *AnchorComp); // only stop FX
+    void DisableDust(UPrimitiveComponent *AnchorComp); 
 
 private:
     void DisableAnchorAndFX(UPrimitiveComponent *AnchorComp);

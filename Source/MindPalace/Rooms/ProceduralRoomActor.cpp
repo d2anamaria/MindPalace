@@ -112,7 +112,7 @@ UStaticMeshComponent *AProceduralRoomActor::SpawnCubeAt(const FVector &LocalPos,
 	Comp->SetRelativeRotation(Rot);
 
 	SpawnedCubes.Add(Comp);
-	RegisterSpawned(Comp); // <-- NEW
+	RegisterSpawned(Comp); 
 
 	return Comp;
 }
